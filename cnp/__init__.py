@@ -1,10 +1,29 @@
 import datetime
+from dateutil import parser
+
 
 class CNP:
-    _date_intervals_for_natives = {'1800-1899': (datetime.datetime(1800, 1, 1), datetime.datetime(1899, 12, 31)),
-                                    '1900-1999': (datetime.datetime(1900, 1, 1), datetime.datetime(1999, 12, 31)),
-                                    '2000-2099': (datetime.datetime(2000, 1, 1), datetime.datetime(2099, 12, 31)),
+    _date_intervals_for_natives = {
+                                    '1800-1899': {
+                                        'date_from': datetime.datetime(1800, 1, 1),
+                                        'date_to': datetime.datetime(1899, 12, 31),
+                                        'male': '3',
+                                        'female': '4'
+                                    },
+                                    '1900-1999': {
+                                        'date_from': datetime.datetime(1900, 1, 1), 
+                                        'date_to': datetime.datetime(1999, 12, 31),
+                                        'male': '1',
+                                        'female': '2'
+                                    },
+                                    '2000-2099': {
+                                        'date_from': datetime.datetime(2000, 1, 1), 
+                                        'date_to': datetime.datetime(2099, 12, 31),
+                                        'male': '5',
+                                        'female': '6'
                                     }
+                                }
+
     _county_codes = {'alba': '01', 'arad': '02', 'arges': '03', 'bacau': '04', 'bihor': '05',
                    'bistrita-nasaud': '06', 'botosani': '07', 'brasov': '08', 'braila': '09', 'buzau': '10',
                    'caras-severin': '11', 'cluj': '12', 'constanta': '13', 'covasna': '14', 'dambovita': '15',
@@ -18,18 +37,20 @@ class CNP:
                    'calarasi': '51', 'giurgiu': '52'
                    }
 
+    _romanian_characters_mapping=[('a', 'a'), ('a', 'a'), ('i', 'i'), ('s', 's'), ('t', 't')]
+
     _genders = ('female', 'male')
 
     _statuses=('native', 'resident', 'foreign')
 
     def __init__(self, gender: str = None,
-                    birthdate: datetime.datetime = None, 
+                    birthdate: str = None, 
                     birthplace: str = None,
                     status: str = None):
-        self._gender = gender
-        self._birthdate = birthdate
-        self._status = status
-        self._birthplace = birthplace
+        self.gender = gender
+        self.birthdate = birthdate
+        self.status = status
+        self.birthplace = birthplace
 
     @property
     def gender(self):
@@ -51,36 +72,93 @@ class CNP:
     def gender(self, value):
         if not isinstance(value, str):
             raise TypeError('gender can only be a string')
-        if len(str(value)).strip()==0 or value is None:
+        if len(str(value).strip())==0 or value is None:
             raise ValueError('gender cannot be an empty string or None')
         if value not in CNP._genders:
             raise ValueError('gender can only be female or male')
-        self._gender=gender
+        self._gender=value
 
     @status.setter
-    def status(self, value);
+    def status(self, value):
         if not isinstance(value, str):
             raise TypeError('status can only be a string')
-        if len(str(value)).strip()==0 or value is None:
+        if len(str(value).strip())==0 or value is None:
             raise ValueError('status cannot be an empty string or None')
         if value not in CNP._statuses:
-            raise ValueError('status can only be native, resident or foreign')
+            raise KeyError('status can only be native, resident or foreign')
         self._status=value
 
     @birthplace.setter
-    def birthplace(self, value);
+    def birthplace(self, value):
         if not isinstance(value, str):
             raise TypeError('birthplace can only be a string')
-        if len(str(value)).strip()==0 or value is None:
+        if len(str(value).strip())==0 or value is None:
             raise ValueError('birthplace cannot be an empty string or None')
         if value not in CNP._county_codes.keys():
-            raise ValueError('birthplace can only be a county or sector from Romania')
+            raise KeyError('birthplace can only be a county or sector from Romania')
         self._birthplace=value
 
     @birthdate.setter
-    def birthdate(self, value);
+    def birthdate(self, value):
         if not isinstance(value, str):
             raise TypeError('birthdate can only be a string')
-        if len(str(value)).strip()==0 or value is None:
+        if len(str(value).strip())==0 or value is None:
             raise ValueError('birthdate cannot be an empty string or None')
-        self._birthdate=value
+        try:
+            if parser.parse(value):
+                self._birthdate=value
+        except ParserError as e:
+            print(e)
+
+
+    def __compute_gender(self):
+        if not self.gender and not self.birthdate and not self.status:
+            return
+        if self.status==CNP._statuses[0]:
+            for interval in CNP._date_intervals_for_natives.values():
+                if interval.get('date_from')<=self.birthdate<=interval.get('date_to'):
+                    return interval.get(self.gender)
+        if self.status==CNP._statuses[1]:
+            if self.gender==CNP._genders[0]:
+                return '8'
+            else:
+                return '7'
+        else:
+            return '9'
+    
+    def __compute_year(self):
+        if not self.birthdate:
+            return
+        return str(self.birthdate.year)[:-2]
+
+
+    def __compute_month(self):
+        if not self.birthdate:
+            return
+        return str(self.birthdate.month)
+
+
+    def __compute_day(self):
+        if not self.birthdate:
+            return
+        return str(self.birthdate.day)
+
+
+    def __compute_birthplace(self):
+        if not self.birthplace:
+            return
+        return CNP._county_codes[self.birthplace]
+
+
+    def __compute_NNN(self):
+        for i in range(1000):
+            yield
+
+
+    def __compute_C(self, value):
+        pass
+
+
+    def create_CNP(self):
+        # return self.__compute_gender()
+        return self.__compute_birthplace()
