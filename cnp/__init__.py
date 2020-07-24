@@ -1,8 +1,8 @@
 import datetime
-from dateutil import parser
 
 
 class CNP:
+    DATE_FORMAT='%Y-%m-%d'
     _date_intervals_for_natives = {
                                     '1800-1899': {
                                         'date_from': datetime.datetime(1800, 1, 1),
@@ -37,16 +37,16 @@ class CNP:
                    'calarasi': '51', 'giurgiu': '52'
                    }
 
-    _romanian_characters_mapping=[('a', 'a'), ('a', 'a'), ('i', 'i'), ('s', 's'), ('t', 't')]
+    _romanian_characters_mapping={'a':'a',  'i': 'i', 's': 's', 't': 't'}
 
     _genders = ('female', 'male')
 
     _statuses=('native', 'resident', 'foreign')
 
-    def __init__(self, gender: str = None,
-                    birthdate: str = None, 
-                    birthplace: str = None,
-                    status: str = None):
+    def __init__(self, gender: str = 'female',
+                    birthdate: str = '2000-1-1', 
+                    birthplace: str = 'bucuresti',
+                    status: str = 'native'):
         self.gender = gender
         self.birthdate = birthdate
         self.status = status
@@ -94,6 +94,10 @@ class CNP:
             raise TypeError('birthplace can only be a string')
         if len(str(value).strip())==0 or value is None:
             raise ValueError('birthplace cannot be an empty string or None')
+        value=value.lower()
+        for letter in value:
+            if letter in CNP._romanian_characters_mapping.keys():
+                letter=CNP._romanian_characters_mapping.get(letter)
         if value not in CNP._county_codes.keys():
             raise KeyError('birthplace can only be a county or sector from Romania')
         self._birthplace=value
@@ -104,14 +108,13 @@ class CNP:
             raise TypeError('birthdate can only be a string')
         if len(str(value).strip())==0 or value is None:
             raise ValueError('birthdate cannot be an empty string or None')
-        try:
-            if parser.parse(value):
-                self._birthdate=value
-        except ParserError as e:
-            print(e)
+        if datetime.datetime.strptime(value, CNP.DATE_FORMAT):
+            self._birthdate=datetime.datetime.strptime(value, CNP.DATE_FORMAT)
+        else:
+            raise ValueError
 
 
-    def __compute_gender(self):
+    def _compute_gender(self):
         if not self.gender and not self.birthdate and not self.status:
             return
         if self.status==CNP._statuses[0]:
@@ -126,39 +129,69 @@ class CNP:
         else:
             return '9'
     
-    def __compute_year(self):
+    def _compute_year(self):
         if not self.birthdate:
             return
-        return str(self.birthdate.year)[:-2]
+        return str(self.birthdate.year)[2:]
 
 
-    def __compute_month(self):
+    def _compute_month(self):
         if not self.birthdate:
             return
         return str(self.birthdate.month)
 
 
-    def __compute_day(self):
+    def _compute_day(self):
         if not self.birthdate:
             return
         return str(self.birthdate.day)
 
 
-    def __compute_birthplace(self):
+    def _compute_birthplace(self):
         if not self.birthplace:
             return
         return CNP._county_codes[self.birthplace]
 
 
-    def __compute_NNN(self):
+    def _compute_NNN(self):
         for i in range(1000):
-            yield
+            yield i
 
 
-    def __compute_C(self, value):
+    def _compute_C(self, value):
         pass
 
 
     def create_CNP(self):
-        # return self.__compute_gender()
-        return self.__compute_birthplace()
+        gen=self._compute_NNN()
+        gen=str(gen)
+        return self._compute_gender()+\
+                self._compute_year()+\
+                self._compute_month()+\
+                self._compute_day()+\
+                self._compute_birthplace()
+
+
+class CNPValidator:
+    @staticmethod
+    def validate_cnp(cnp):
+        CNPValidator._validate_type(cnp)
+        CNPValidator._validate_digits(cnp)
+        CNPValidator._validate_length(cnp)
+        CNPValidator._validate_content(cnp)
+
+    def _validate_type(cnp):
+        if type(cnp)!=str:
+            raise TypeError('cnp must be of type string')
+
+    def _validate_digits(cnp):
+        if not cnp.isdigit():
+            raise ValueError('cnp must only contain numerical values (integers)')
+
+    def _validate_length(cnp):
+        if len(cnp)!=13:
+            raise ValueError('cnp must contain exactly 13 digits')
+
+    def _validate_content(cnp):
+        if not cnp:
+            raise ValueError('cnp cannot be null')

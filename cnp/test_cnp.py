@@ -4,6 +4,7 @@ from . import CNP
 
 
 class TestCnpGender:
+
     #gender number testing
     def test_validate_gender_number_1990_1999(self):
         pass

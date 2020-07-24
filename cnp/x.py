@@ -57,3 +57,15 @@ _statuses=('native', 'resident', 'foreign')
 for item in _date_intervals_for_natives.values():
     print(item.get('date_from'))
     # print(item)
+
+
+def avg(n):
+    _sum=0
+    if n and len(n)==0:
+        return 0
+    else:
+        for i in n:
+            _sum+=i
+        return _sum/n
+
+n=[3,4,5,6,7,8,6,5,4,3,6,7,8]
