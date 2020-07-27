@@ -132,18 +132,19 @@ def __check_nnn_format(cnp: CNP):
         raise ValueError('nnn number is not the range 000 - 999.') 
 
 
-def __check_valid_nnn_digits(cnp: CNP, other_cnp: CNP):
+def __check_valid_nnn_digits(cnp: CNP, other_cnp: CNP=None):
     """the function will compare the substrings of two cnp's to see if the same nnn number
         has been assigned to two individuals in the same day in a district/county.
     """
-    if cnp.cnp_string[7:-1]==other_cnp.cnp_string[7:-1] and \
-        cnp.date_created.year==other_cnp.date_created.year and \
-        cnp.date_created.month==other_cnp.date_created.month and \
-        cnp.date_created.day==other_cnp.date_created.day:
-        print(cnp.cnp_string[7:-1])
-        print(other_cnp.cnp_string[7:-1])
-        raise ValueError('cannot assign the same nnn value to two CNP\'s created\
-                            in the same day in the same county/district')
+    if other_cnp:
+        if cnp.cnp_string[7:-1]==other_cnp.cnp_string[7:-1] and \
+            cnp.date_created.year==other_cnp.date_created.year and \
+            cnp.date_created.month==other_cnp.date_created.month and \
+            cnp.date_created.day==other_cnp.date_created.day:
+            print(cnp.cnp_string[7:-1])
+            print(other_cnp.cnp_string[7:-1])
+            raise ValueError('cannot assign the same nnn value to two CNP\'s created\
+                                in the same day in the same county/district')
 
 
 def __check_c_digit(cnp: CNP):
@@ -151,10 +152,12 @@ def __check_c_digit(cnp: CNP):
     control_digit=''
     remainder=0
     check_number='279146358279'
-    for i, j in zip(check_number, cnp.cnp_string[:-1]):
-        sum_of_digits+=i*j
+    for i, j in zip(check_number, cnp._cnp_string[:-1]):
+        sum_of_digits+=int(i)*int(j)
     remainder=sum_of_digits%11
     if remainder==10:
         control_digit='1'
     else:
         control_digit=str(remainder)
+    if control_digit!=cnp._cnp_string[-1]:
+        raise ValueError('control digit is incorrect')

@@ -2,7 +2,8 @@ import pytest
 import datetime
 from . import CNP, __check_type, __check_is_digit, __check_length, __check_first_digit,\
             __check_location_digits, __check_day_digits, __check_month_digits,\
-            __check_year_digits, __check_birthdate, __check_valid_nnn_digits
+            __check_year_digits, __check_birthdate, __check_valid_nnn_digits, \
+            __check_c_digit
 
 
 def test_check_type():
@@ -99,8 +100,12 @@ def test_get_birthdate():
 
 def test_check_valid_nnn_digits():
     with pytest.raises(ValueError):
-        cnp=CNP('1201230888967', datetime.datetime.now())
-        other_cnp=CNP('2201230888963', datetime.datetime.now())
-        print(cnp)
-        print(other_cnp)
+        cnp=CNP('1201230888967')
+        other_cnp=CNP('2201230888963')
         __check_valid_nnn_digits(cnp, other_cnp)
+
+
+def test_check_c_digit():
+    with pytest.raises(ValueError):
+        cnp=CNP('1201230888967')
+        __check_c_digit(cnp)
