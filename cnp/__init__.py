@@ -26,15 +26,7 @@ class CNP:
         return f'CNP({self.cnp_string}) created at {self.date_created}'
 
 
-def cnp_validator(cnp: CNP)->bool:
-    __check_type(cnp)
-    __check_length(cnp)
-    __check_is_digit(cnp)
-    __check_first_digit(cnp)
-    if not __check_birthdate(cnp):
-        raise ValueError('invalid birthdate')
-    __check_valid_nnn_digits(cnp)
-
+"""a few helper functions"""
 
 def __generate_digits_range(min_value: int=0, max_value: int=99):
     """ this is a helper function that will generate string representing numbers 
@@ -43,35 +35,6 @@ def __generate_digits_range(min_value: int=0, max_value: int=99):
     digits=[str(i) for i in range(min_value, max_value)]
     digits=[(len(str(max_value))-len(digit))*'0'+str(digit) for digit in digits]
     return digits
-
-
-def __check_type(cnp: CNP):
-    """the function will check if the value entered is of type string"""
-    if type(cnp.cnp_string)!=str:
-        raise TypeError('cnp must only be a string')
-
-def __check_is_digit(cnp: CNP):
-    """the function will check the characters within the string represent integers"""
-    if not str(cnp.cnp_string).isdigit():
-        raise ValueError('cnp must contain only digits from 0 to 9')
-
-def __check_length(cnp: CNP):
-    """a valid cnp will have no more and no less than 13 numeric characters"""
-    if len(cnp.cnp_string)!=13 or len(cnp.cnp_string)==0:
-        raise ValueError('cnp must contain exactly 14 digits')
-
-def __check_first_digit(cnp: CNP):
-    """the first digit, correponding to the gender, must not be 0"""
-    if cnp.cnp_string[0]=='0':
-        raise ValueError('first digit can only be a digit from 1 to 9')
-
-def __check_location_digits(cnp: CNP):
-    """The location code must be verified and it must be between 01 and 46, 51 or 52"""
-    digits=__generate_digits_range(1, 47)
-    digits.extend(['51', '52'])
-    location_digits=cnp.cnp_string[7:9]
-    if location_digits not in digits:
-        raise ValueError('the location digits of the cnp must be in range 01 to 46 or 51 or 52')
 
 def __check_day_digits(cnp: CNP):
     """the function will check if the 6th and 7th characters form a valid day number (01 to 31)"""
@@ -132,6 +95,58 @@ def __check_nnn_format(cnp: CNP):
         raise ValueError('nnn number is not the range 000 - 999.') 
 
 
+"""the main validation function"""
+def cnp_validator(cnp: CNP)->bool:
+    """the actual function that will validate the given CNP instance and will return true
+        if the cnp is valid and false if cnp is invalid.
+    """
+    __check_type(cnp)
+    __check_length(cnp)
+    __check_is_digit(cnp)
+    __check_first_digit(cnp)
+    __check_location_digits(cnp)
+    __check_valid_birtdate(cnp)
+    __check_valid_nnn_digits(cnp)
+    return __check_c_digit(cnp)
+
+
+"""The validation functions"""
+def __check_type(cnp: CNP):
+    """the function will check if the value entered is of type string"""
+    if type(cnp.cnp_string)!=str:
+        raise TypeError('cnp must only be a string')
+
+def __check_is_digit(cnp: CNP):
+    """the function will check the characters within the string represent integers"""
+    if not str(cnp.cnp_string).isdigit():
+        raise ValueError('cnp must contain only digits from 0 to 9')
+
+def __check_length(cnp: CNP):
+    """a valid cnp will have no more and no less than 13 numeric characters"""
+    if len(cnp.cnp_string)!=13 or len(cnp.cnp_string)==0:
+        raise ValueError('cnp must contain exactly 14 digits')
+
+def __check_first_digit(cnp: CNP):
+    """the first digit, correponding to the gender, must not be 0"""
+    if cnp.cnp_string[0]=='0':
+        raise ValueError('first digit can only be a digit from 1 to 9')
+
+def __check_location_digits(cnp: CNP):
+    """The location code must be verified and it must be between 01 and 46, 51 or 52"""
+    digits=__generate_digits_range(1, 47)
+    digits.extend(['51', '52'])
+    location_digits=cnp.cnp_string[7:9]
+    if location_digits not in digits:
+        raise ValueError('the location digits of the cnp must be in range 01 to 46 or 51 or 52')
+
+def __check_valid_birtdate(cnp: CNP):
+    try:
+        birthdate=__check_birthdate(cnp)
+        if not birthdate:
+            raise ValueError('invalid birthdate')
+    except Exception as e:
+        print(e)
+
 def __check_valid_nnn_digits(cnp: CNP, other_cnp: CNP=None):
     """the function will compare the substrings of two cnp's to see if the same nnn number
         has been assigned to two individuals in the same day in a district/county.
@@ -145,7 +160,6 @@ def __check_valid_nnn_digits(cnp: CNP, other_cnp: CNP=None):
             print(other_cnp.cnp_string[7:-1])
             raise ValueError('cannot assign the same nnn value to two CNP\'s created\
                                 in the same day in the same county/district')
-
 
 def __check_c_digit(cnp: CNP):
     sum_of_digits=0
@@ -161,3 +175,6 @@ def __check_c_digit(cnp: CNP):
         control_digit=str(remainder)
     if control_digit!=cnp._cnp_string[-1]:
         raise ValueError('control digit is incorrect')
+        return False
+    else:
+        return True

@@ -8,9 +8,6 @@ def check_nnn_format(cnp: str):
     nnn=cnp[9:13]
     return digits
 
-print(check_nnn_format('sw'))
-
-
 single_digit_codes=['01', '02', '03', '04', '05', '06', '07', '08', '09']
 
 def __check_location_digits(cnp: str):
@@ -112,4 +109,12 @@ def __check_nnn_format(cnp: CNP):
         raise ValueError('nnn number is not the range 000 - 999.') 
 
 
-print(__check_nnn_format(CNP('456757478567')))
+
+s='1234567890'
+t='5282624272'
+
+x=0
+for i, j in zip(s, t):
+    print(f'{x}={int(i)}+{int(j)}')
+    x+=int(i)+int(j)
+print(x)
