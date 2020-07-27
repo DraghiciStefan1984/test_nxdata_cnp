@@ -96,7 +96,7 @@ def __check_nnn_format(cnp: CNP):
 
 
 """the main validation function"""
-def cnp_validator(cnp: CNP)->bool:
+def cnp_validator(cnp: CNP, other_cnp: CNP=None)->bool:
     """the actual function that will validate the given CNP instance and will return true
         if the cnp is valid and false if cnp is invalid.
     """

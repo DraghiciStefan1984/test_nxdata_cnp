@@ -109,3 +109,4 @@ def test_check_c_digit():
     with pytest.raises(ValueError):
         cnp=CNP('1201230888967')
         __check_c_digit(cnp)
+        
